@@ -1,0 +1,89 @@
+
+
+
+from aiogram import F
+from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
+import json
+import os
+from aiogram.fsm.state import State, StatesGroup
+from aiogram.fsm.context import FSMContext
+import asyncio
+from datetime import datetime, timedelta
+from aiogram import Bot, Dispatcher, types
+from aiogram.filters import Command
+from aiogram.types import Message
+import logging
+token = '7980507312:AAEKF04H83yriQ1mVp7z1YkEn_WZ3zGkkCo'
+chat_id = None
+interval = 60
+bot = Bot(token=token)
+dp = Dispatcher()
+
+scheduler_running = False
+async def send_periodic_messages():
+    """Функция для периодической отправки сообщений"""
+    global scheduler_running
+    scheduler_running = True
+
+    while scheduler_running:
+        try:
+            await bot.send_message(
+                chat_id=chat_id,
+                text='здесь должен быть сгенерированный график')
+            # Ожидаем указанный интервал
+            await asyncio.sleep(interval)
+
+        except Exception as e:
+            logging.error(f"Ошибка при отправке сообщения: {e}")
+            # В случае ошибки подождем немного и продолжим
+            await asyncio.sleep(10)
+
+
+@dp.message(Command('start'))
+async def staring(message: types.Message):
+    global chat_id, scheduler_running
+
+    # Сохраняем ID чата, откуда пришла команда
+    chat_id = message.chat.id
+    user = message.from_user
+    await message.answer(f"👋Привет, {user.first_name}, здесь ты сможешь узнать свои еженедельные затраты.")
+
+
+@dp.message(Command("start_scheduler"))
+async def cmd_start_scheduler(message: Message):
+    global scheduler_running, chat_id
+
+    if not chat_id:
+        chat_id = message.chat.id
+
+    if not scheduler_running:
+        asyncio.create_task(send_periodic_messages())
+        await message.answer(f"✅ Подсчёт затрат запущен")
+    else:
+        await message.answer("⚠️ Подсчёт затрат уже запущен")
+
+
+@dp.message(Command("stop_scheduler"))
+async def cmd_stop_scheduler(message: Message):
+    """Остановка планировщика"""
+    global scheduler_running
+
+    if scheduler_running:
+        scheduler_running = False
+        await message.answer("🛑 Подсчёт затрат остановлен")
+    else:
+        await message.answer("⚠️ Подсчёт затрат не запущен")
+
+
+
+
+
+
+
+
+async def main():
+
+    await dp.start_polling(bot)
+
+if __name__ == "__main__":
+    asyncio.run(main())
