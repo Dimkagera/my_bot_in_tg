@@ -1,6 +1,3 @@
-
-
-
 from aiogram import F
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 import json
@@ -75,7 +72,28 @@ async def cmd_stop_scheduler(message: Message):
         await message.answer("⚠️ Подсчёт затрат не запущен")
 
 
+@dp.message(Command('url'))
+async def show_buttons(message: types.Message):
+    # Создаем кнопки:
+    button1 = InlineKeyboardButton(
+        text="Ссылка на ТГК",  # Текст на кнопке
+        url = "t.me/firawants"  # Данные, которые придут в callback
+    )
 
+    button2 = InlineKeyboardButton(
+        text="Ссылка на GitHub",  # Текст на кнопке
+        url="https://github.com/Dimkagera"  # URL для перехода (не callback!)
+    )
+
+    # Создаем клавиатуру (обязательно список списков - строки кнопок)
+    keyboard = InlineKeyboardMarkup(
+        inline_keyboard=[
+            [button1],  # Первый ряд кнопок
+            [button2]  # Второй ряд кнопок
+        ]
+    )
+
+    await message.answer("Выбери действие:", reply_markup=keyboard)
 
 
 
